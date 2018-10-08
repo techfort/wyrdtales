@@ -18,9 +18,9 @@ type CommentsResult struct {
 
 // Comment model
 type Comment struct {
-	ID       int64
-	PostID   int64
-	AuthorID int64
+	ID       string
+	PostID   string
+	AuthorID string
 	Body     string
 	Posted   time.Time
 }

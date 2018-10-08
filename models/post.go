@@ -6,9 +6,11 @@ import (
 
 // Post models
 type Post struct {
-	ID     int64
-	Title  string
-	Body   string
-	Tags   []string
-	Posted time.Time
+	PostID   string
+	Title    string
+	Body     string
+	Tags     []string
+	Posted   time.Time
+	Status   string
+	Category string
 }
