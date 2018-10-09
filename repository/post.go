@@ -1,21 +1,32 @@
 package repository
 
-import "github.com/techfort/wyrdtales/models"
+import (
+	"github.com/olivere/elastic"
+)
 
-// PostResult struct
-type PostResult struct {
-	Result models.Post
-	Error  error
-}
-
-// PostsResult struct
-type PostsResult struct {
-	Result []models.Post
-	Error  error
-}
+// constants literals
+const (
+	// Post const
+	Post = "post"
+	// Story const
+	Story = "story"
+	// Blogpost const
+	Blogpost = "blogpost"
+)
 
 // PostRepository interface
 type PostRepository interface {
-	ByID(ID string) PostResult
-	ByIDs(ID ...string) PostsResult
+	ByID(ID string) (*elastic.GetResult, error)
+	/*
+		ByIDs(ID ...string) PostsResult
+		Upload(post models.Post) PostResult
+		Publish(post models.Post) PostResult
+		SearchInBody(keywords ...string) PostsResult
+		SearchByTag(tags ...string) PostsResult
+		SearchByCategory(category ...string) PostsResult
+	*/
+}
+
+func (r repo) ByID(ID string) (*elastic.GetResult, error) {
+	return r.Elastic.Get().Id(ID).Do(r.Context)
 }
