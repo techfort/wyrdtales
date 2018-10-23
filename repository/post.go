@@ -2,21 +2,13 @@ package repository
 
 import (
 	"github.com/olivere/elastic"
-)
-
-// constants literals
-const (
-	// Post const
-	Post = "post"
-	// Story const
-	Story = "story"
-	// Blogpost const
-	Blogpost = "blogpost"
+	"github.com/techfort/wyrdtales/models"
 )
 
 // PostRepository interface
 type PostRepository interface {
 	ByID(ID string) (*elastic.GetResult, error)
+	SavePost(post models.Post) (*elastic.IndexResponse, error)
 	/*
 		ByIDs(ID ...string) PostsResult
 		Upload(post models.Post) PostResult
@@ -27,6 +19,12 @@ type PostRepository interface {
 	*/
 }
 
+// ByID retrieves a post by id
 func (r repo) ByID(ID string) (*elastic.GetResult, error) {
-	return r.Elastic.Get().Id(ID).Do(r.Context)
+	return r.Elastic.Get().Index(models.PostsIndex).Type(models.StoryType).Id(ID).Do(r.Context)
+}
+
+// SavePost saves a post to elasticsearch
+func (r repo) SavePost(post models.Post) (*elastic.IndexResponse, error) {
+	return r.Elastic.Index().Index(models.PostsIndex).Type(models.StoryType).BodyJson(post).Do(r.Context)
 }

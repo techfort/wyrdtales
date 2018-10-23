@@ -1,7 +1,10 @@
 package usecases
 
 import (
-	"time"
+	"encoding/json"
+	"fmt"
+
+	"github.com/olivere/elastic"
 
 	"github.com/techfort/wyrdtales/models"
 	"github.com/techfort/wyrdtales/repository"
@@ -20,6 +23,11 @@ func NewPostUseCase(repo repository.PostRepository) PostUseCase {
 type PostUseCase interface {
 	// GetPost returns a post by ud
 	GetPost(ID string) (models.Post, error)
+	SavePost(post models.Post) (*elastic.IndexResponse, error)
+	/*
+		SavePost(post models.Post) (models.Post, error)
+		Unpublish(ID string) (models.Post, error)
+	*/
 }
 
 // GetPost returns a post
@@ -29,13 +37,13 @@ func (puc postUsecase) GetPost(ID string) (models.Post, error) {
 	if err != nil || !gr.Found {
 		return post, err
 	}
-	post.PostID = gr.Id
-	post.AuthorID = gr.Fields["authorId"].(string)
-	post.Body = gr.Fields["body"].(string)
-	post.Category = gr.Fields["category"].(string)
-	post.Posted = gr.Fields["posted"].(time.Time)
-	post.Status = gr.Fields["status"].(string)
-	post.Tags = gr.Fields["tags"].([]string)
-	post.Title = gr.Fields["title"].(string)
+	fmt.Println(fmt.Sprintf("Post: %+v", gr.Fields))
+	err = json.Unmarshal(*gr.Source, &post)
 	return post, err
+}
+
+func (puc postUsecase) SavePost(post models.Post) (*elastic.IndexResponse, error) {
+	ir, err := puc.Repo.SavePost(post)
+	fmt.Println(fmt.Sprintf("IR: %+v", ir))
+	return ir, err
 }
