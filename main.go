@@ -27,6 +27,7 @@ func getElastic() (*elastic.Client, error) {
 }
 
 func main() {
+	fmt.Println("Starting wyrdtales....")
 	ctx := context.Background()
 	defer func() {
 		if r := recover(); r != nil {
@@ -39,8 +40,11 @@ func main() {
 	}()
 
 	v := viper.New()
-	es, err := elastic.NewClient()
-
+	es, err := elastic.NewClient(elastic.SetURL("http://elasticsearch:9200/"))
+	if err != nil {
+		fmt.Println(fmt.Sprintf("ERRORRRRRR: %v", err.Error()))
+		panic(err.Error())
+	}
 	exists, err := es.IndexExists(models.PostsIndex).Do(ctx)
 	if err != nil || !exists {
 		createdIndex, err := es.CreateIndex(models.PostsIndex).Do(ctx)

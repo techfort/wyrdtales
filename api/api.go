@@ -3,10 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"time"
-
-	"github.com/techfort/wyrdtales/models"
 
 	"github.com/techfort/wyrdtales/repository"
 	"github.com/techfort/wyrdtales/usecases"
@@ -49,13 +47,34 @@ func GetRoutes() map[string]echo.HandlerFunc {
 		"posts/testsave": func(c echo.Context) error {
 			cc := c.(*Context)
 			repo := repository.NewRepoFactory(cc.Elastic)
-			var t time.Time
 			postrepo := repo.GetPostRepository()
 			pu := usecases.NewPostUseCase(postrepo)
-			post := models.Post{AuthorID: "joe", Title: "some post", Body: "some body", Posted: t.Local(), Category: models.StoryType, Status: "draft"}
+			post := `{ "authorid": "joe", "title": "some post again", "body": "some body", "category": "story", "status": "draft"}`
 			ir, err := pu.SavePost(post)
 			fmt.Println(fmt.Sprintf("IR: %+v", ir))
 			return err
+		},
+	}
+}
+
+// PostRoutes returns POST routes
+func PostRoutes() map[string]echo.HandlerFunc {
+	return map[string]echo.HandlerFunc{
+		"posts/story": func(c echo.Context) error {
+			cc := c.(*Context)
+			repo := repository.NewRepoFactory(cc.Elastic)
+			postrepo := repo.GetPostRepository()
+			pu := usecases.NewPostUseCase(postrepo)
+			req := cc.Request()
+			bytes, err := ioutil.ReadAll(req.Body)
+			if err != nil {
+				return cc.JSONBlob(http.StatusInternalServerError, []byte(err.Error()))
+			}
+			ir, err := pu.SavePost(string(bytes))
+			if err != nil {
+				return cc.JSONBlob(http.StatusInternalServerError, []byte(err.Error()))
+			}
+			return cc.JSONBlob(http.StatusOK, []byte(fmt.Sprintf(`{ "message": "post saved with id %v"`, ir.Id)))
 		},
 	}
 }
@@ -70,6 +89,9 @@ func Config(e *echo.Echo, v *viper.Viper, es *elastic.Client) *echo.Echo {
 	})
 	for route, handler := range GetRoutes() {
 		e.GET(route, handler)
+	}
+	for route, handler := range PostRoutes() {
+		e.POST(route, handler)
 	}
 	return e
 }

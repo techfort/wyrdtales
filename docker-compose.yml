@@ -1,0 +1,28 @@
+version: '2.2'
+services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
+    ports:
+      - "9200:9200"
+    expose:
+      - "9200"
+    labels:
+      group: common
+  
+  wyrdtales:
+    container_name: wyrdtales
+    image: wyrdtales_wyrdtales:latest
+    command: watcher
+    labels:
+      group: common
+    volumes:
+      - ./:/go/src/github.com/techfort/wyrdtales
+    ports:
+      - "1323:1323"
+    expose:
+      - "1323"
+    links:
+      - elasticsearch
+    depends_on:
+      - elasticsearch
