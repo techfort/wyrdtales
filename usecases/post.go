@@ -3,7 +3,6 @@ package usecases
 import (
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/olivere/elastic"
 
@@ -25,6 +24,7 @@ type PostUseCase interface {
 	// GetPost returns a post by ud
 	GetPost(ID string) (models.Post, error)
 	SavePost(rawJSON string) (*elastic.IndexResponse, error)
+	SearchTerm(term string) ([]models.Post, error)
 	/*
 		SavePost(post models.Post) (models.Post, error)
 		Unpublish(ID string) (models.Post, error)
@@ -47,9 +47,27 @@ func (puc postUsecase) SavePost(rawJSON string) (*elastic.IndexResponse, error) 
 		fmt.Println(fmt.Sprintf("Error: %+v", err.Error()))
 		return ir, err
 	}
-	post.Posted = time.Now()
+	// post.Posted = time.Now()
+	post.SetDefaults()
 	fmt.Println(fmt.Sprintf("POST: %+v", post))
 	ir, err = puc.Repo.SavePost(post)
 	fmt.Println(fmt.Sprintf("%+v", ir))
 	return ir, err
+}
+
+func (puc postUsecase) SearchTerm(term string) ([]models.Post, error) {
+	sr, err := puc.Repo.SearchTerm(term)
+	posts := make([]models.Post, 0)
+	if err != nil {
+		return nil, err
+	}
+	for _, p := range sr.Hits.Hits {
+		var post models.Post
+		err := json.Unmarshal(*p.Source, &post)
+		if err != nil {
+			return posts, err
+		}
+		posts = append(posts, post)
+	}
+	return posts, nil
 }

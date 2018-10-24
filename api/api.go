@@ -54,6 +54,20 @@ func GetRoutes() map[string]echo.HandlerFunc {
 			fmt.Println(fmt.Sprintf("IR: %+v", ir))
 			return err
 		},
+		"posts/search": func(c echo.Context) error {
+			cc := c.(*Context)
+			term := cc.QueryParam("term")
+			repo := repository.NewRepoFactory(cc.Elastic)
+			postrepo := repo.GetPostRepository()
+			pu := usecases.NewPostUseCase(postrepo)
+			posts, err := pu.SearchTerm(term)
+			if err != nil {
+				return cc.JSONBlob(http.StatusInternalServerError, []byte(fmt.Sprintf(`{ "error": "%v"}`, err.Error())))
+			}
+			fmt.Println(fmt.Sprintf("POSTS: %+v", posts))
+			str, err := json.Marshal(posts)
+			return cc.JSONBlob(http.StatusOK, str)
+		},
 	}
 }
 
@@ -74,7 +88,7 @@ func PostRoutes() map[string]echo.HandlerFunc {
 			if err != nil {
 				return cc.JSONBlob(http.StatusInternalServerError, []byte(err.Error()))
 			}
-			return cc.JSONBlob(http.StatusOK, []byte(fmt.Sprintf(`{ "message": "post saved with id %v"`, ir.Id)))
+			return cc.JSONBlob(http.StatusOK, []byte(fmt.Sprintf(`{ "message": "post saved with id %v"}`, ir.Id)))
 		},
 	}
 }
