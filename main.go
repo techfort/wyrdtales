@@ -12,20 +12,6 @@ import (
 	"github.com/techfort/wyrdtales/api"
 )
 
-func getElastic() (*elastic.Client, error) {
-	es, err := elastic.NewClient()
-	if err != nil {
-		panic(err)
-	}
-	info, code, err := es.Ping("http://localhost:9200/").Do(context.Background())
-	if err != nil {
-		fmt.Println(fmt.Sprintf("I: %v, C: %v, E: %v", info, code, err.Error()))
-		panic(err)
-	}
-	fmt.Println(fmt.Sprintf("%v, %v", info, code))
-	return es, err
-}
-
 func main() {
 	fmt.Println("Starting wyrdtales....")
 	ctx := context.Background()
@@ -42,7 +28,7 @@ func main() {
 	v := viper.New()
 	es, err := elastic.NewClient(elastic.SetURL("http://elasticsearch:9200/"))
 	if err != nil {
-		fmt.Println(fmt.Sprintf("ERRORRRRRR: %v", err.Error()))
+		fmt.Println(fmt.Sprintf("ERROR: %v", err.Error()))
 		panic(err.Error())
 	}
 	exists, err := es.IndexExists(models.PostsIndex).Do(ctx)

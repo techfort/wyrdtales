@@ -48,13 +48,13 @@ func (puc postUsecase) SavePost(rawJSON string) (*elastic.IndexResponse, error) 
 		return ir, err
 	}
 	// post.Posted = time.Now()
-	post.SetDefaults()
 	fmt.Println(fmt.Sprintf("POST: %+v", post))
 	ir, err = puc.Repo.SavePost(post)
 	fmt.Println(fmt.Sprintf("%+v", ir))
 	return ir, err
 }
 
+// SearchTerm searches for documents with the term
 func (puc postUsecase) SearchTerm(term string) ([]models.Post, error) {
 	sr, err := puc.Repo.SearchTerm(term)
 	posts := make([]models.Post, 0)

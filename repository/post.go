@@ -27,10 +27,11 @@ func (r repo) ByID(ID string) (models.Post, error) {
 
 // SavePost saves a post to elasticsearch
 func (r repo) SavePost(post models.Post) (*elastic.IndexResponse, error) {
+	post.SetDefaults()
 	return r.Elastic.Index().Index(models.PostsIndex).Type(models.StoryType).BodyJson(post).Do(r.Context)
 }
 
 func (r repo) SearchTerm(term string) (*elastic.SearchResult, error) {
-	q := elastic.NewTermQuery("body", "dark")
+	q := elastic.NewTermQuery("body", term)
 	return r.Elastic.Search().Query(q).Do(r.Context)
 }
