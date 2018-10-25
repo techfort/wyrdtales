@@ -23,5 +23,9 @@ func NewRepoFactory(es *elastic.Client) RepoFactory {
 
 // GetPostRespository returns a PostRepository
 func (r repo) GetPostRepository() PostRepository {
-	return r
+	return postRepo{r}
+}
+
+func (r repo) GetUserRepository() UserRepository {
+	return userRepo{r}
 }
