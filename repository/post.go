@@ -1,10 +1,6 @@
 package repository
 
 import (
-	"encoding/json"
-
-	"github.com/techfort/wyrdtales/utils"
-
 	"github.com/olivere/elastic"
 	"github.com/techfort/wyrdtales/models"
 )
@@ -15,18 +11,21 @@ type postRepo struct {
 
 // PostRepository interface
 type PostRepository interface {
-	ByID(ID string) (models.Post, error)
+	ByID(ID string) (*elastic.GetResult, error)
+	Latest(num int) (*elastic.SearchResult, error)
 	SavePost(post models.Post) (*elastic.IndexResponse, error)
+	UpdateStory(ID string, post models.Post) (*elastic.UpdateResponse, error)
 	SearchTerm(phrase string) (*elastic.SearchResult, error)
 }
 
 // ByID retrieves a post by id
-func (r postRepo) ByID(ID string) (models.Post, error) {
-	gr, err := r.Elastic.Get().Index(models.PostsIndex).Type(models.StoryType).Id(ID).Do(r.Context)
-	var post models.Post
-	utils.PanicIf(err)
-	utils.PanicIf(json.Unmarshal(*gr.Source, &post))
-	return post, err
+func (r postRepo) ByID(ID string) (*elastic.GetResult, error) {
+	return r.Elastic.Get().Index(models.PostsIndex).Type(models.StoryType).Id(ID).Do(r.Context)
+}
+
+// Latest returns the latest posts
+func (r postRepo) Latest(num int) (*elastic.SearchResult, error) {
+	return r.Elastic.Search().Index(models.PostsIndex).Type(models.StoryType).From(0).Size(num).Sort("posted", false).Do(r.Context)
 }
 
 // SavePost saves a post to elasticsearch
@@ -38,5 +37,10 @@ func (r postRepo) SavePost(post models.Post) (*elastic.IndexResponse, error) {
 func (r postRepo) SearchTerm(phrase string) (*elastic.SearchResult, error) {
 	q := elastic.NewMatchQuery("body", phrase).MinimumShouldMatch("75%")
 	bq := elastic.NewBoolQuery().Should(q)
-	return r.Elastic.Search().Query(bq).Do(r.Context)
+	return r.Elastic.Search().Index(models.PostsIndex).Type(models.StoryType).Query(bq).Do(r.Context)
+}
+
+// UpdateStory updates a story document
+func (r postRepo) UpdateStory(ID string, post models.Post) (*elastic.UpdateResponse, error) {
+	return r.Elastic.Update().Index(models.PostsIndex).Type(models.StoryType).Doc(post).Do(r.Context)
 }

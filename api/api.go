@@ -36,7 +36,7 @@ func GetRoutes() map[string]echo.HandlerFunc {
 			pu := usecases.NewPostUseCase(postrepo)
 			post, err := pu.GetPost(id)
 			if err != nil {
-				return cc.JSONBlob(http.StatusInternalServerError, []byte(fmt.Sprintf("%v", err.Error())))
+				return cc.JSONBlob(http.StatusInternalServerError, []byte(fmt.Sprintf(`{ "error": "%v" }`, err.Error())))
 			}
 			jp, err := json.Marshal(post)
 			if err != nil {
@@ -64,7 +64,6 @@ func GetRoutes() map[string]echo.HandlerFunc {
 			if err != nil {
 				return cc.JSONBlob(http.StatusInternalServerError, []byte(fmt.Sprintf(`{ "error": "%v"}`, err.Error())))
 			}
-			fmt.Println(fmt.Sprintf("POSTS: %+v", posts))
 			str, err := json.Marshal(posts)
 			return cc.JSONBlob(http.StatusOK, str)
 		},
