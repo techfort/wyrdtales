@@ -9,9 +9,10 @@ import (
 )
 
 // UnmarshalPost unmarshales a post
-func UnmarshalPost(source []byte) (models.Post, error) {
+func UnmarshalPost(source *elastic.SearchHit) (models.Post, error) {
 	var post models.Post
-	err := json.Unmarshal(source, &post)
+	err := json.Unmarshal(*source.Source, &post)
+	post.ID = source.Id
 	return post, err
 }
 
@@ -22,7 +23,7 @@ func UnmarshalPostSlice(result *elastic.SearchResult) ([]models.Post, error) {
 		err   error
 	)
 	for _, r := range result.Hits.Hits {
-		if p, err := UnmarshalPost(*r.Source); err != nil {
+		if p, err := UnmarshalPost(r); err != nil {
 			fmt.Println(fmt.Sprintf("Error unmarshaling post: %v", err.Error()))
 		} else {
 			posts = append(posts, p)

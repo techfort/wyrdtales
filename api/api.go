@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 // Context is the API context
@@ -67,6 +68,22 @@ func GetRoutes() map[string]echo.HandlerFunc {
 			str, err := json.Marshal(posts)
 			return cc.JSONBlob(http.StatusOK, str)
 		},
+		"posts/latest": func(c echo.Context) error {
+			cc := c.(*Context)
+			repo := repository.NewRepoFactory(cc.Elastic)
+			postrepo := repo.GetPostRepository()
+			pu := usecases.NewPostUseCase(postrepo)
+			posts, err := pu.GetLatest(3)
+			if err != nil {
+				fmt.Println(err.Error())
+				return cc.JSONBlob(http.StatusInternalServerError, []byte(`{ "error": "Error retrieving posts"}`))
+			}
+			jsonresponse, err := json.Marshal(posts)
+			if err != nil {
+				return cc.JSONBlob(http.StatusInternalServerError, []byte(`{"error": "Error processing posts"}`))
+			}
+			return cc.JSONBlob(http.StatusOK, jsonresponse)
+		},
 	}
 }
 
@@ -94,6 +111,11 @@ func PostRoutes() map[string]echo.HandlerFunc {
 
 // Config returns an echo instance
 func Config(e *echo.Echo, v *viper.Viper, es *elastic.Client) *echo.Echo {
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete},
+	}))
+
 	e.Use(func(h echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			cc := &Context{c, v, es}

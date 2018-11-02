@@ -23,6 +23,7 @@ const (
 
 // Post models
 type Post struct {
+	ID       string    `json:"id"`
 	AuthorID string    `json:"authorid"`
 	Title    string    `json:"title"`
 	Body     string    `json:"body"`
