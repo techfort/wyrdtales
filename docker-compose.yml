@@ -5,6 +5,8 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:6.4.2
     ports:
       - "9200:9200"
+    healthcheck:
+      test: curl --head localhost:9200
     expose:
       - "9200"
     labels:
@@ -25,4 +27,5 @@ services:
     links:
       - elasticsearch
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy

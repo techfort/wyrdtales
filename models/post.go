@@ -31,6 +31,7 @@ type Post struct {
 	Posted   time.Time `json:"posted"`
 	Status   string    `json:"status"`
 	Category string    `json:"category"`
+	PenName  string    `json:"penname"`
 }
 
 // SetDefaults set post defaults

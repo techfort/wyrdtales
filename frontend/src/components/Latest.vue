@@ -1,12 +1,12 @@
 <template>
-    <div class="container latest">
+    <div>
         <h2>Latest Stories</h2>
         <hr/>
         <div v-if="posts.length > 0">
-        <Post v-for="post in posts" v-bind:key="post.id"
+        <StorySummary v-for="post in posts" v-bind:key="post.id"
             v-bind:post="post"
         >
-        </Post>
+        </StorySummary>
         </div>
         <div v-else>{{ errorMessage }}</div>
     </div>
@@ -14,13 +14,13 @@
 
 <script>
 import postService from '../services/post'
-import Post from './Post.vue'
+import StorySummary from './StorySummary.vue'
 
 const Latest = () => {
     return {
         name: 'Latest',
         components: {
-            Post
+            StorySummary
         },
         data() {
             return {
